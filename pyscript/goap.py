@@ -84,11 +84,13 @@ async def garbage_refresh():
     async with aiohttp.ClientSession() as session:
         async with session.get(req_url, params=req_params) as resp:
             if(resp.status != 200):
-                log.error("GOAP Error, status code " + str(resp.status))
+                log.error("GOAP: Network Error, status code " + str(resp.status))
                 return
             raw_html = resp.text()
     html_data = BeautifulSoup(raw_html, 'html.parser')
-
+    if not html_data.select('.plan'):
+        log.error("GOAP: No data received, check if your address is correct")
+        return
     for german_id in CONFIG['entities']:
         date = get_date(german_id, html_data)
         set_state(german_id, date)
